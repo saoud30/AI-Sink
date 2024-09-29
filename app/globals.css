@@ -3,37 +3,40 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* Text Balance */
   .text-balance {
-    text-wrap: balance;
+    text-align: justify;
+    text-justify: inter-word;
   }
-  /* Hide scrollbar for Chrome, Safari and Opera */
+
+  /* Hide Scrollbar */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+
+  /* Loader */
   .loader {
-    text-align: left;
     display: flex;
-    gap: 3px;
+    gap: 5px;
+    justify-content: center;
   }
 
   .loader span {
     display: inline-block;
-    vertical-align: middle;
-    width: 7px;
-    height: 7px;
-    /* background: #4b4b4b; */
-    background: white;
-    border-radius: 50%;
-    animation: loader 0.6s infinite alternate;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 80%;
+    animation: loader 0.8s infinite alternate;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
 
   .loader span:nth-of-type(2) {
-    animation-delay: 0.2s;
+    animation-delay: 0.3s;
   }
 
   .loader span:nth-of-type(3) {
@@ -43,16 +46,30 @@
   @keyframes loader {
     0% {
       opacity: 1;
-      transform: scale(0.6);
+      transform: scale(0.8);
     }
-
     100% {
-      opacity: 0.3;
-      transform: scale(1);
+      opacity: 0.5;
+      transform: scale(1.2);
     }
+  }
+
+  /* Gradient Background */
+  .gradient-bg {
+    background: linear-gradient(
+      to right,
+      #07168b,
+      #27f2f2 
+    );
+    background-attachment: fixed;
+    background-size: 100% 100%;
   }
 }
 
 body {
   margin: 0px !important;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  transition: all 0.3s ease;
+  @apply gradient-bg;
 }

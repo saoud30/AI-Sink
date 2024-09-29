@@ -14,11 +14,11 @@ const Footer = () => {
             height={30}
           />
           <span className="text-base font-medium leading-[normal]">
-            TurboSeek.io
+            feel free to contribute!
           </span>
         </a>
         <div className="flex items-center gap-3">
-          <Link href={"https://x.com/nutlope"} target="_blank">
+          <Link href={"https://x.com/Shazyansar"} target="_blank">
             <Image
               unoptimized
               src="/img/x.svg"
@@ -27,7 +27,7 @@ const Footer = () => {
               height={15}
             />
           </Link>
-          <Link href={"https://github.com/Nutlope/turboseek"} target="_blank">
+          <Link href={"https://github.com/Saoud30"} target="_blank">
             <Image
               unoptimized
               src={"/img/github-footer.svg"}
