@@ -20,7 +20,7 @@
 
 ## 🎯 Live Demo
 
-Experience AI-Sink in action: [Live Demo](https://ai-sink.netlify.app)
+Experience AI-Sink in action: [Live Demo](https://ai-sink.vercel.app/)
 
 ## 🛠️ Tech Stack
 
