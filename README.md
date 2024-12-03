@@ -17,6 +17,8 @@
 - 🚀 **Lightning Fast**: Get instant answers powered by Together AI
 - 🔄 **Similar Topics**: Discover related questions and expand your knowledge
 - 📱 **Mobile Ready**: Perfect experience across all devices
+- 🎨 **Image Generation**: Create stunning AI-generated images from text descriptions
+- 🎤 **Voice Search**: Search hands-free with voice commands for enhanced accessibility
 
 ## 🎯 Live Demo
 
@@ -35,7 +37,7 @@ Experience AI-Sink in action: [Live Demo](https://ai-sink.vercel.app/)
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/AI-Sink.git
+git clone https://github.com/Saoud30/AI-Sink.git
 ```
 
 2. Install dependencies:
