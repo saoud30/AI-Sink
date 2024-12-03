@@ -11,25 +11,6 @@ import { analyzeImage, detectObjects, explainCode, generateImage } from './servi
 import { Footer } from './components/Footer';
 import { toast } from 'react-hot-toast';
 
-// Define interfaces for better type safety
-interface SearchResults {
-  question: string;
-  sources: Array<{ title: string; link: string; snippet: string }>;
-  answer: string;
-  similarTopics: string[];
-}
-
-interface FileAnalysisData {
-  type: 'image' | 'code';
-  content: string;
-  metadata?: any;
-}
-
-interface GeneratedImageData {
-  url: string;
-  prompt: string;
-}
-
 const EXAMPLE_QUESTIONS = [
   "What's the future of brain-computer interfaces?",
   "Will quantum computing revolutionize cybersecurity?",
@@ -39,10 +20,22 @@ const EXAMPLE_QUESTIONS = [
 function App() {
   const [loading, setLoading] = useState(false);
   const [promptValue, setPromptValue] = useState('');
-  const [fileAnalysis, setFileAnalysis] = useState<FileAnalysisData | null>(null);
+  const [fileAnalysis, setFileAnalysis] = useState<{
+    type: 'image' | 'code';
+    content: string;
+    metadata?: any;
+  } | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
-  const [generatedImage, setGeneratedImage] = useState<GeneratedImageData | null>(null);
+  const [searchResults, setSearchResults] = useState<{
+    question: string;
+    sources: Array<{ title: string; link: string; snippet: string }>;
+    answer: string;
+    similarTopics: string[];
+  } | null>(null);
+  const [generatedImage, setGeneratedImage] = useState<{
+    url: string;
+    prompt: string;
+  } | null>(null);
 
   const handleSearch = async (query: string) => {
     setLoading(true);
@@ -56,49 +49,54 @@ function App() {
         setGeneratedImage({ url: imageUrl, prompt: imagePrompt });
         setSearchResults(null);
       } else {
-        const [sourcesData, answerData, topicsData] = await Promise.all([
-          searchGoogle(query),
-          getAnswer(query),
-          getSimilarTopics(query)
+        const sources = await searchGoogle(query);
+        const [answer, similarTopics] = await Promise.all([
+          getAnswer(query, sources),
+          getSimilarTopics(query),
         ]);
+
         setSearchResults({
           question: query,
-          sources: sourcesData,
-          answer: answerData,
-          similarTopics: topicsData
+          sources,
+          answer,
+          similarTopics,
         });
-        setGeneratedImage(null);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
+      toast.error(message);
+      console.error('Operation failed:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFileUpload = async (file: File, currentFileState: File | null) => {
+  const handleFileUpload = async (file: File) => {
     setLoading(true);
     setCurrentFile(file);
-    
     try {
       if (file.type.startsWith('image/')) {
-        const formData = new FormData();
-        formData.append('image', file);
-        const objects = await detectObjects(file);
+        const [analysis, objects] = await Promise.all([
+          analyzeImage(URL.createObjectURL(file), 'Describe this image in detail.'),
+          detectObjects(file)
+        ]);
         setFileAnalysis({
           type: 'image',
-          content: await analyzeImage(URL.createObjectURL(file), 'Describe this image in detail'),
-          metadata: objects
+          content: analysis,
+          metadata: { objects }
         });
-      } else {
+      } else if (file.name.endsWith('.js') || file.name.endsWith('.ts')) {
         const text = await file.text();
+        const explanation = await explainCode(text);
         setFileAnalysis({
           type: 'code',
-          content: await explainCode(text)
+          content: explanation
         });
       }
     } catch (error) {
-      toast.error('Failed to analyze file');
+      const message = error instanceof Error ? error.message : 'Failed to analyze file';
+      toast.error(message);
+      console.error('File analysis failed:', error);
     } finally {
       setLoading(false);
     }
@@ -106,18 +104,19 @@ function App() {
 
   const reset = () => {
     setSearchResults(null);
-    setFileAnalysis(null);
-    setGeneratedImage(null);
     setPromptValue('');
+    setFileAnalysis(null);
     setCurrentFile(null);
+    setGeneratedImage(null);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0A0B0F]">
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-900" />
-      <div className="relative">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      <div className="relative z-10">
         <Header showBackButton={!!searchResults || !!fileAnalysis || !!generatedImage} onBack={reset} />
-        <main className="flex-1 container mx-auto px-4 py-6">
+        
+        <main className="container mx-auto px-4 py-6">
           {!searchResults && !fileAnalysis && !generatedImage ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
               <div className="flex flex-col items-center gap-2">
@@ -125,7 +124,7 @@ function App() {
                   href="https://www.together.ai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-sm hover:bg-white/20 transition-all text-white/90"
+                  className="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-sm hover:bg-white/20 transition-all text-white"
                 >
                   Powered by Together AI
                 </a>
@@ -136,13 +135,13 @@ function App() {
                   Start with @ to generate images, or just type to search
                 </p>
               </div>
-
+              
               <div className="w-full max-w-2xl">
                 <SearchInput
                   value={promptValue}
                   onChange={setPromptValue}
                   onSearch={handleSearch}
-                  onFileUpload={(file) => handleFileUpload(file, currentFile)}
+                  onFileUpload={handleFileUpload}
                   disabled={loading}
                 />
                 
@@ -197,13 +196,14 @@ function App() {
                   value={promptValue}
                   onChange={setPromptValue}
                   onSearch={handleSearch}
-                  onFileUpload={(file) => handleFileUpload(file, currentFile)}
+                  onFileUpload={handleFileUpload}
                   disabled={loading}
                 />
               </div>
             </div>
           )}
         </main>
+        
         <Footer />
       </div>
     </div>
